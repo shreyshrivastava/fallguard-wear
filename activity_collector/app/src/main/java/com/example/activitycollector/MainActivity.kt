@@ -365,6 +365,9 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
             binding.btnToggleGuard.backgroundTintList = ContextCompat.getColorStateList(this, R.color.primary_emerald)
             binding.cardHeroGuard.background = ContextCompat.getDrawable(this, R.drawable.card_hero_guard)
             binding.tvTopStatusBadge.text = "● Guarding"
+            if (monitoringService?.fallDetector?.currentPhase == FallDetector.Phase.IDLE) {
+                binding.tvFallStatus.text = "No fall in progress"
+            }
             binding.tvTopStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.primary_emerald))
             binding.tvTopStatusBadge.backgroundTintList = ContextCompat.getColorStateList(this, R.color.primary_emerald_light)
         } else {
@@ -376,6 +379,12 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
             binding.btnToggleGuard.backgroundTintList = ContextCompat.getColorStateList(this, R.color.btn_export)
             binding.cardHeroGuard.background = ContextCompat.getDrawable(this, R.drawable.card_m3_background)
             binding.tvTopStatusBadge.text = "❚❚ Paused"
+            // Sensors are off while paused, so don't keep showing the last reading.
+            binding.tvActivityIcon.text = "—"
+            binding.tvActivityLabel.text = "NO DATA"
+            binding.tvConfidencePill.text = "—"
+            binding.progressBarConfidence.progress = 0
+            binding.tvFallStatus.text = "Turn on Guard to start reading sensors"
             binding.tvTopStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
             binding.tvTopStatusBadge.backgroundTintList = ContextCompat.getColorStateList(this, R.color.surface_variant)
         }
@@ -926,13 +935,6 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
             binding.progressBarConfidence.progress = 0
             return
         }
-        if (confidence == InferenceEngine.CONFIDENCE_NOT_FROM_MODEL) {
-            binding.tvActivityLabel.text = label.uppercase()
-            binding.tvConfidencePill.text = "From tilt"
-            binding.progressBarConfidence.progress = 0
-            return
-        }
-        val pct = (confidence * 100).toInt()
         val icon = when (label.lowercase()) {
             "walking"  -> "🚶"
             "running"  -> "🏃"
@@ -942,6 +944,14 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
             "falling"  -> "⚠️"
             else       -> "⚡"
         }
+        if (confidence == InferenceEngine.CONFIDENCE_NOT_FROM_MODEL) {
+            binding.tvActivityIcon.text = icon
+            binding.tvActivityLabel.text = label.uppercase()
+            binding.tvConfidencePill.text = "From tilt"
+            binding.progressBarConfidence.progress = 0
+            return
+        }
+        val pct = (confidence * 100).toInt()
         binding.tvActivityIcon.text = icon
         binding.tvActivityLabel.text = label.uppercase()
         binding.tvConfidencePill.text = "$pct% Confident"
@@ -950,7 +960,7 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
 
     override fun onFallPhaseChanged(phase: FallDetector.Phase, description: String) {
         val text = when (phase) {
-            FallDetector.Phase.IDLE                   -> "Normal motion • Posture stable"
+            FallDetector.Phase.IDLE                   -> "No fall in progress"
             FallDetector.Phase.PHASE1_SUDDEN_MOVEMENT -> "⚡ Sudden movement detected"
             FallDetector.Phase.PHASE2_ROTATION        -> "🔄 Rotation / posture change"
             FallDetector.Phase.PHASE3_IMPACT          -> "💥 Impact confirmed by model"
@@ -1029,7 +1039,7 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
 
     private fun clearFallBanner() {
         binding.tvFallBanner.visibility = View.GONE
-        binding.tvFallStatus.text = "Normal motion • Posture stable"
+        binding.tvFallStatus.text = "No fall in progress"
         fallAlertDialog.dismiss()
     }
 

@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -197,11 +198,14 @@ private fun SensorBlock(title: String, available: Boolean, values: FloatArray?, 
         when {
             !available -> Text("Not on this watch", fontSize = 14.sp)
             values == null -> Text("—", fontSize = 14.sp, fontFamily = FontFamily.Monospace)
-            else -> Text(
-                "x ${fmt(values[0])}  y ${fmt(values[1])}  z ${fmt(values[2])}",
-                fontSize = 13.sp,
-                fontFamily = FontFamily.Monospace,
-            )
+            else -> Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                listOf("x", "y", "z").forEachIndexed { i, axis ->
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(axis, fontSize = 10.sp, color = Muted)
+                        Text(fmt(values[i]), fontSize = 13.sp, fontFamily = FontFamily.Monospace)
+                    }
+                }
+            }
         }
         if (extra != null) Text(extra, fontSize = 12.sp, fontFamily = FontFamily.Monospace, color = Mint)
     }
