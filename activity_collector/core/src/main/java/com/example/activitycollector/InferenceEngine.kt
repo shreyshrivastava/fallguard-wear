@@ -49,6 +49,10 @@ class InferenceEngine(
 ) {
 
     companion object {
+        /** Label reported when the model was skipped to save power. */
+        const val LABEL_UNCLASSIFIED = "unclassified"
+        /** Confidence value meaning the label came from the gravity direction, not the model. */
+        const val CONFIDENCE_NOT_FROM_MODEL = -1f
         private const val TAG          = "InferenceEngine"
         private const val MODEL_ASSET  = "har_model.ptl"
         private const val LABELS_ASSET = "har_labels.txt"
@@ -172,10 +176,9 @@ class InferenceEngine(
                 val restingLabel = if (Math.abs(az) > 7.0f) "lying" else if (Math.abs(ay) > 6.0f) "standing" else "sitting"
                 lastLabel = restingLabel
                 currentIntervalMs = 1000L // relax check interval to 1 Hz
-                val restingProbs = FloatArray(labels.size) { idx ->
-                    if (labels[idx] == restingLabel) 0.95f else 0.01f
-                }
-                onResult(restingLabel, 0.95f, restingProbs)
+                // Posture comes from the gravity direction, not the model, so no
+                // model probabilities or confidence are reported.
+                onResult(restingLabel, CONFIDENCE_NOT_FROM_MODEL, FloatArray(labels.size))
                 return
             }
         } else {
@@ -194,9 +197,9 @@ class InferenceEngine(
                 if (a < minAcc) minAcc = a
             }
             if (maxAcc < 15.0f && minAcc > 6.5f) {
-                // Motion is mild; skip heavy model execution to preserve power
-                val probs = FloatArray(labels.size) { idx -> if (labels[idx] == "walking") 0.88f else 0.02f }
-                onResult("walking", 0.88f, probs)
+                // Motion is mild; skip heavy model execution to preserve power.
+                // Report that no classification was made instead of inventing one.
+                onResult(LABEL_UNCLASSIFIED, 0f, FloatArray(labels.size))
                 return
             }
         }

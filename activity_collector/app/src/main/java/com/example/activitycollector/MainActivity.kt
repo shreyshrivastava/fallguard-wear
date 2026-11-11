@@ -189,7 +189,7 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
     }
 
     // ── Live Sensitivity Motion Tracker ───────────────────────────────────────
-    private var livePeakAcc = 9.8f
+    private var livePeakAcc = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -365,6 +365,9 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
             binding.btnToggleGuard.backgroundTintList = ContextCompat.getColorStateList(this, R.color.primary_emerald)
             binding.cardHeroGuard.background = ContextCompat.getDrawable(this, R.drawable.card_hero_guard)
             binding.tvTopStatusBadge.text = "● Guarding"
+            if (monitoringService?.fallDetector?.currentPhase == FallDetector.Phase.IDLE) {
+                binding.tvFallStatus.text = "No fall in progress"
+            }
             binding.tvTopStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.primary_emerald))
             binding.tvTopStatusBadge.backgroundTintList = ContextCompat.getColorStateList(this, R.color.primary_emerald_light)
         } else {
@@ -376,6 +379,12 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
             binding.btnToggleGuard.backgroundTintList = ContextCompat.getColorStateList(this, R.color.btn_export)
             binding.cardHeroGuard.background = ContextCompat.getDrawable(this, R.drawable.card_m3_background)
             binding.tvTopStatusBadge.text = "❚❚ Paused"
+            // Sensors are off while paused, so don't keep showing the last reading.
+            binding.tvActivityIcon.text = "—"
+            binding.tvActivityLabel.text = "NO DATA"
+            binding.tvConfidencePill.text = "—"
+            binding.progressBarConfidence.progress = 0
+            binding.tvFallStatus.text = "Turn on Guard to start reading sensors"
             binding.tvTopStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
             binding.tvTopStatusBadge.backgroundTintList = ContextCompat.getColorStateList(this, R.color.surface_variant)
         }
@@ -431,7 +440,12 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
 
             tvTime.text = "${event.relativeTimeSpan} • ${event.formattedDateTime}"
             tvSummary.text = event.summary.ifEmpty { "Incident handled" }
-            tvMetrics.text = "Impact: ${"%.1f".format(event.impactForce)} m/s² • Tilt: ${"%.0f".format(event.tiltAngle)}° • Conf: ${event.confidencePct}%"
+            val metrics = listOfNotNull(
+                event.impactForce?.let { "Impact: ${"%.1f".format(it)} m/s²" },
+                event.tiltAngle?.let { "Tilt: ${"%.0f".format(it)}°" },
+                event.confidencePct?.let { "Model: $it%" },
+            )
+            tvMetrics.text = if (metrics.isEmpty()) "No fall measured" else metrics.joinToString(" • ")
 
             when (event.outcome) {
                 AlertEvent.Outcome.DISMISSED_SAFE -> {
@@ -529,10 +543,10 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
 
         // Live Peak Reset Button
         binding.btnResetPeakAcc.setOnClickListener {
-            livePeakAcc = 9.8f
-            binding.tvLivePeakAcc.text = "9.8 m/s²"
-            binding.progressLiveAcc.progress = 10
-            binding.tvLiveCalibratorResult.text = "✅ SAFE • Desk placement will not trigger alert"
+            livePeakAcc = 0f
+            binding.tvLivePeakAcc.text = "—"
+            binding.progressLiveAcc.progress = 0
+            binding.tvLiveCalibratorResult.text = "Waiting for movement • Set the phone down to test"
             binding.tvLiveCalibratorResult.setTextColor(ContextCompat.getColor(this, R.color.primary_emerald))
             binding.tvLiveCalibratorResult.backgroundTintList = ContextCompat.getColorStateList(this, R.color.primary_emerald_light)
         }
@@ -914,7 +928,13 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
     // ── Service Listener Callbacks ────────────────────────────────────────────
 
     override fun onInferenceUpdate(label: String, confidence: Float, probs: FloatArray) {
-        val pct = (confidence * 100).toInt()
+        if (label == InferenceEngine.LABEL_UNCLASSIFIED) {
+            binding.tvActivityIcon.text = "🔋"
+            binding.tvActivityLabel.text = "LOW POWER"
+            binding.tvConfidencePill.text = "Model skipped"
+            binding.progressBarConfidence.progress = 0
+            return
+        }
         val icon = when (label.lowercase()) {
             "walking"  -> "🚶"
             "running"  -> "🏃"
@@ -924,6 +944,14 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
             "falling"  -> "⚠️"
             else       -> "⚡"
         }
+        if (confidence == InferenceEngine.CONFIDENCE_NOT_FROM_MODEL) {
+            binding.tvActivityIcon.text = icon
+            binding.tvActivityLabel.text = label.uppercase()
+            binding.tvConfidencePill.text = "From tilt"
+            binding.progressBarConfidence.progress = 0
+            return
+        }
+        val pct = (confidence * 100).toInt()
         binding.tvActivityIcon.text = icon
         binding.tvActivityLabel.text = label.uppercase()
         binding.tvConfidencePill.text = "$pct% Confident"
@@ -932,7 +960,7 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
 
     override fun onFallPhaseChanged(phase: FallDetector.Phase, description: String) {
         val text = when (phase) {
-            FallDetector.Phase.IDLE                   -> "Normal motion • Posture stable"
+            FallDetector.Phase.IDLE                   -> "No fall in progress"
             FallDetector.Phase.PHASE1_SUDDEN_MOVEMENT -> "⚡ Sudden movement detected"
             FallDetector.Phase.PHASE2_ROTATION        -> "🔄 Rotation / posture change"
             FallDetector.Phase.PHASE3_IMPACT          -> "💥 Impact confirmed by model"
@@ -1011,7 +1039,7 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
 
     private fun clearFallBanner() {
         binding.tvFallBanner.visibility = View.GONE
-        binding.tvFallStatus.text = "Normal motion • Posture stable"
+        binding.tvFallStatus.text = "No fall in progress"
         fallAlertDialog.dismiss()
     }
 
