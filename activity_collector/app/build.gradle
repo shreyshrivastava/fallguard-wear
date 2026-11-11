@@ -51,7 +51,6 @@ dependencies {
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
-    // ── PyTorch Mobile (CPU-only, ~3 MB AAR) ──────────────────────────────
-    // pytorch_android_lite loads TorchScript .ptl files with no Python runtime.
-    implementation 'org.pytorch:pytorch_android_lite:1.13.1'
+    // Shared detector, model runner, contacts and history (includes PyTorch Mobile).
+    implementation project(':core')
 }
