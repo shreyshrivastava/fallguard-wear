@@ -189,7 +189,7 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
     }
 
     // ── Live Sensitivity Motion Tracker ───────────────────────────────────────
-    private var livePeakAcc = 9.8f
+    private var livePeakAcc = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -431,7 +431,12 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
 
             tvTime.text = "${event.relativeTimeSpan} • ${event.formattedDateTime}"
             tvSummary.text = event.summary.ifEmpty { "Incident handled" }
-            tvMetrics.text = "Impact: ${"%.1f".format(event.impactForce)} m/s² • Tilt: ${"%.0f".format(event.tiltAngle)}° • Conf: ${event.confidencePct}%"
+            val metrics = listOfNotNull(
+                event.impactForce?.let { "Impact: ${"%.1f".format(it)} m/s²" },
+                event.tiltAngle?.let { "Tilt: ${"%.0f".format(it)}°" },
+                event.confidencePct?.let { "Model: $it%" },
+            )
+            tvMetrics.text = if (metrics.isEmpty()) "No fall measured" else metrics.joinToString(" • ")
 
             when (event.outcome) {
                 AlertEvent.Outcome.DISMISSED_SAFE -> {
@@ -529,10 +534,10 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
 
         // Live Peak Reset Button
         binding.btnResetPeakAcc.setOnClickListener {
-            livePeakAcc = 9.8f
-            binding.tvLivePeakAcc.text = "9.8 m/s²"
-            binding.progressLiveAcc.progress = 10
-            binding.tvLiveCalibratorResult.text = "✅ SAFE • Desk placement will not trigger alert"
+            livePeakAcc = 0f
+            binding.tvLivePeakAcc.text = "—"
+            binding.progressLiveAcc.progress = 0
+            binding.tvLiveCalibratorResult.text = "Waiting for movement • Set the phone down to test"
             binding.tvLiveCalibratorResult.setTextColor(ContextCompat.getColor(this, R.color.primary_emerald))
             binding.tvLiveCalibratorResult.backgroundTintList = ContextCompat.getColorStateList(this, R.color.primary_emerald_light)
         }
@@ -914,6 +919,19 @@ class MainActivity : AppCompatActivity(), FallMonitoringService.ServiceListener 
     // ── Service Listener Callbacks ────────────────────────────────────────────
 
     override fun onInferenceUpdate(label: String, confidence: Float, probs: FloatArray) {
+        if (label == InferenceEngine.LABEL_UNCLASSIFIED) {
+            binding.tvActivityIcon.text = "🔋"
+            binding.tvActivityLabel.text = "LOW POWER"
+            binding.tvConfidencePill.text = "Model skipped"
+            binding.progressBarConfidence.progress = 0
+            return
+        }
+        if (confidence == InferenceEngine.CONFIDENCE_NOT_FROM_MODEL) {
+            binding.tvActivityLabel.text = label.uppercase()
+            binding.tvConfidencePill.text = "From tilt"
+            binding.progressBarConfidence.progress = 0
+            return
+        }
         val pct = (confidence * 100).toInt()
         val icon = when (label.lowercase()) {
             "walking"  -> "🚶"

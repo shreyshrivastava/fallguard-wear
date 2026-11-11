@@ -201,7 +201,7 @@
                             android:id="@+id/tvConfidencePill"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="95% Confident"
+                            android:text="—"
                             android:textSize="11sp"
                             android:textStyle="bold"
                             android:textColor="@color/primary_emerald"
@@ -242,7 +242,7 @@
                                 android:id="@+id/tvActivityLabel"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="WALKING"
+                                android:text="NO DATA"
                                 android:textSize="22sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/text_primary"
@@ -252,7 +252,7 @@
                                 android:id="@+id/tvFallStatus"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Normal motion • Posture stable"
+                                android:text="Turn on Guard to start reading sensors"
                                 android:textSize="12sp"
                                 android:textColor="@color/text_secondary" />
 
@@ -970,7 +970,7 @@
                                 android:id="@+id/tvLiveCurrentAcc"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="9.8 m/s²"
+                                android:text="—"
                                 android:textSize="17sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/text_primary" />
@@ -1000,7 +1000,7 @@
                                 android:id="@+id/tvLivePeakAcc"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="12.4 m/s²"
+                                android:text="—"
                                 android:textSize="17sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/primary_emerald" />
@@ -1030,7 +1030,7 @@
                                 android:id="@+id/tvLiveThreshold"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="26.0 m/s²"
+                                android:text="—"
                                 android:textSize="17sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/emergency_crimson" />
@@ -1602,7 +1602,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Model: har_model.ptl (TorchScript Lite • 192 KB)\nArchitecture: Temporal CNN • Stride: 400ms • Sampling: 50 Hz"
+                        android:text="Model: har_model.ptl (TorchScript Lite • 192 KB)\nArchitecture: 1D CNN + LSTM • Stride: 400ms • Sampling: 50 Hz"
                         android:textSize="11sp"
                         android:textColor="@color/text_tertiary"
                         android:fontFamily="monospace" />

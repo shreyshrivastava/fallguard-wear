@@ -70,6 +70,24 @@ class FallDetector(
     private var preImpactGravity = floatArrayOf(0f, 9.8f, 0f)  // rolling baseline
     private var lastAccSvmPeak = 0f
 
+    /** Highest acceleration magnitude (m/s²) seen since the current fall sequence started. */
+    private var sequencePeak = 0f
+
+    /** Measured values of the most recent confirmed fall, kept after [reset] for logging. */
+    @Volatile var lastFallImpactPeak = 0f
+        private set
+    @Volatile var lastFallTiltDeg = 0f
+        private set
+    @Volatile var lastFallConfidencePct = 0
+        private set
+    @Volatile var lastFallPriorActivity: String? = null
+        private set
+
+    /** Model's fall probability when the impact phase was entered. */
+    private var sequenceFallProb = 0f
+    /** Last activity label seen while idle, i.e. before a fall sequence started. */
+    private var idleLabel: String? = null
+
     fun applySensitivity(
         preset: String,
         customSpike: Float = 24.0f,
@@ -133,6 +151,7 @@ class FallDetector(
         val currentOrientation = computeOrientationVector(window2D)
 
         lastAccSvmPeak = accPeak
+        if (currentPhase != Phase.IDLE || accPeak > sequencePeak) sequencePeak = maxOf(sequencePeak, accPeak)
 
         // Class index 0 is 'falling', class index 1 is 'lying'
         val fallProb = if (probs.isNotEmpty()) probs[0] else 0f
@@ -149,6 +168,7 @@ class FallDetector(
                 if (!isFallPredicted && accStd < 2.0f) {
                     preImpactGravity = currentOrientation
                 }
+                if (!isFallPredicted) idleLabel = label
 
                 // Initial fall initiation check:
                 // When requireFreefallDip is enabled (Desk-Safe / Custom mode), require weightlessness dip before impact.
@@ -160,6 +180,7 @@ class FallDetector(
                 }
 
                 if (isInitiated) {
+                    sequencePeak = accPeak
                     enterPhase(
                         Phase.PHASE1_SUDDEN_MOVEMENT,
                         now,
@@ -192,6 +213,7 @@ class FallDetector(
 
                 // Must have ML model confirmation of 'falling' AND physical impact spike
                 if (isFallPredicted && accPeak > (svmSpikeThreshold * 0.75f)) {
+                    sequenceFallProb = fallProb
                     enterPhase(
                         Phase.PHASE3_IMPACT,
                         now,
@@ -225,6 +247,10 @@ class FallDetector(
                     Log.d(TAG, "Post-fall window $confirmedWindows / $requiredStillWindows (tilt: ${"%.1f".format(tiltAngle)}°, std: ${"%.2f".format(accStd)}, label: $label)")
 
                     if (confirmedWindows >= requiredStillWindows) {
+                        lastFallImpactPeak = sequencePeak
+                        lastFallTiltDeg = tiltAngle
+                        lastFallConfidencePct = (sequenceFallProb * 100).toInt()
+                        lastFallPriorActivity = idleLabel
                         enterPhase(Phase.CONFIRMED, now, "Fall confirmed: model verified + sustained post-fall rest")
                         onFallConfirmed()
                     }
@@ -254,6 +280,8 @@ class FallDetector(
         currentPhase     = Phase.IDLE
         phaseEnteredAt   = 0L
         confirmedWindows = 0
+        sequencePeak     = 0f
+        sequenceFallProb = 0f
     }
 
     private fun enterPhase(phase: Phase, now: Long, reason: String) {

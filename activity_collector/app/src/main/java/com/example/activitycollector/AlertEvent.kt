@@ -18,10 +18,14 @@ data class AlertEvent(
     val summary: String = "",
     val latitude: Double? = null,
     val longitude: Double? = null,
-    val impactForce: Float = 0f,
-    val tiltAngle: Float = 0f,
-    val confidencePct: Int = 0,
-    val activityBeforeFall: String = "walking"
+    /** Peak acceleration of the fall in m/s², or null when no fall was measured (manual SOS). */
+    val impactForce: Float? = null,
+    /** Posture change after the fall in degrees, or null when not measured. */
+    val tiltAngle: Float? = null,
+    /** Model's fall probability at impact (0-100), or null when not measured. */
+    val confidencePct: Int? = null,
+    /** Last activity the model reported before the fall, or null when unknown. */
+    val activityBeforeFall: String? = null
 ) {
     enum class Outcome {
         DISMISSED_SAFE,
@@ -60,10 +64,10 @@ data class AlertEvent(
             put("summary", summary)
             if (latitude != null) put("latitude", latitude)
             if (longitude != null) put("longitude", longitude)
-            put("impactForce", impactForce.toDouble())
-            put("tiltAngle", tiltAngle.toDouble())
-            put("confidencePct", confidencePct)
-            put("activityBeforeFall", activityBeforeFall)
+            impactForce?.let { put("impactForce", it.toDouble()) }
+            tiltAngle?.let { put("tiltAngle", it.toDouble()) }
+            confidencePct?.let { put("confidencePct", it) }
+            activityBeforeFall?.let { put("activityBeforeFall", it) }
         }
     }
 
@@ -80,10 +84,10 @@ data class AlertEvent(
                 summary = json.optString("summary", ""),
                 latitude = if (json.has("latitude")) json.optDouble("latitude") else null,
                 longitude = if (json.has("longitude")) json.optDouble("longitude") else null,
-                impactForce = json.optDouble("impactForce", 0.0).toFloat(),
-                tiltAngle = json.optDouble("tiltAngle", 0.0).toFloat(),
-                confidencePct = json.optInt("confidencePct", 0),
-                activityBeforeFall = json.optString("activityBeforeFall", "walking")
+                impactForce = if (json.has("impactForce")) json.getDouble("impactForce").toFloat() else null,
+                tiltAngle = if (json.has("tiltAngle")) json.getDouble("tiltAngle").toFloat() else null,
+                confidencePct = if (json.has("confidencePct")) json.getInt("confidencePct") else null,
+                activityBeforeFall = if (json.has("activityBeforeFall")) json.getString("activityBeforeFall") else null
             )
         }
     }

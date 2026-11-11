@@ -445,7 +445,7 @@ class FallMonitoringService : Service(), SensorEventListener {
                 context = this,
                 label = "falling",
                 window2D = lastConfirmedWindow!!,
-                impactPeak = 24.5f,
+                impactPeak = fallDetector.lastFallImpactPeak,
                 isConfirmed = true
             )
         }
@@ -546,10 +546,10 @@ class FallMonitoringService : Service(), SensorEventListener {
             AlertEvent(
                 outcome = AlertEvent.Outcome.DISMISSED_SAFE,
                 summary = "User checked in safely ('I am okay' ✓)",
-                impactForce = 22.4f,
-                tiltAngle = 38f,
-                confidencePct = (currentConfidence * 100).toInt(),
-                activityBeforeFall = currentLabel
+                impactForce = fallDetector.lastFallImpactPeak,
+                tiltAngle = fallDetector.lastFallTiltDeg,
+                confidencePct = fallDetector.lastFallConfidencePct,
+                activityBeforeFall = fallDetector.lastFallPriorActivity
             )
         )
 
@@ -560,6 +560,8 @@ class FallMonitoringService : Service(), SensorEventListener {
 
     fun executeEmergencyProtocol() {
         Log.w(TAG, "🚨 EXECUTING EMERGENCY SOS PROTOCOL")
+        // A manual SOS has no measured fall, so it must not reuse an earlier fall's numbers.
+        val fromFallAlert = isAlertActive
         isAlertActive = false
         uiHandler.removeCallbacks(countdownRunnable)
         stopAlertFeedback()
@@ -584,10 +586,10 @@ class FallMonitoringService : Service(), SensorEventListener {
             AlertEvent(
                 outcome = AlertEvent.Outcome.SOS_DISPATCHED,
                 summary = result.summary,
-                impactForce = 24.8f,
-                tiltAngle = 44f,
-                confidencePct = (currentConfidence * 100).toInt(),
-                activityBeforeFall = currentLabel
+                impactForce = if (fromFallAlert) fallDetector.lastFallImpactPeak else null,
+                tiltAngle = if (fromFallAlert) fallDetector.lastFallTiltDeg else null,
+                confidencePct = if (fromFallAlert) fallDetector.lastFallConfidencePct else null,
+                activityBeforeFall = if (fromFallAlert) fallDetector.lastFallPriorActivity else null
             )
         )
 
@@ -659,7 +661,7 @@ class FallMonitoringService : Service(), SensorEventListener {
 
         val lowBatteryTag = if (isLowBatteryActive) " • 🔋 Low Battery Mode" else ""
         val bodyText = if (activity.isNotEmpty() && activity != "—") {
-            "Status: ${activity.uppercase()} ($confidencePct%)$lowBatteryTag • $durationStr"
+            "Status: ${activity.uppercase()} (${if (confidencePct < 0) "from tilt" else "$confidencePct%"})$lowBatteryTag • $durationStr"
         } else {
             "Active monitoring • Sensor buffer running$lowBatteryTag"
         }
