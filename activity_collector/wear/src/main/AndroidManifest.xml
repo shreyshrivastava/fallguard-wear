@@ -3,6 +3,14 @@
 
     <uses-feature android:name="android.hardware.type.watch" />
 
+    <!-- Phase 2 recorder: a foreground service that logs 50 Hz motion data
+         with the screen off. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -25,5 +33,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Exported only to holders of DUMP, which ordinary apps can't get but
+             adb shell has, so a developer can start and stop recording from a
+             computer: see tools/record_remote.sh. -->
+        <service
+            android:name=".RecordingService"
+            android:exported="true"
+            android:permission="android.permission.DUMP"
+            android:foregroundServiceType="health" />
     </application>
 </manifest>
