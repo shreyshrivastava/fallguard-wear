@@ -1,12 +1,16 @@
 package com.example.activitycollector.wear
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,6 +18,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
@@ -65,7 +75,20 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
 
         setContent {
+            var screen by remember { mutableStateOf(Screen.Live) }
+            val recording by RecordingService.stats.collectAsState()
+            BackHandler(enabled = screen == Screen.Recorder) { screen = Screen.Live }
+            if (screen == Screen.Recorder || recording != null) {
+                RecorderScreen(
+                    stats = recording,
+                    onStart = { label -> startRecording(label) },
+                    onStop = { RecordingService.stop(this) },
+                    savedSessions = RecordingService.recordingsDir(this).listFiles()?.count { it.extension == "csv" } ?: 0,
+                )
+                return@setContent
+            }
             LiveSensorScreen(
+                onOpenRecorder = { screen = Screen.Recorder },
                 hasAccelerometer = accelerometer != null,
                 hasGyroscope = gyroscope != null,
                 accel = accel.value,
@@ -75,6 +98,16 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 capacity = buffer.capacity,
             )
         }
+    }
+
+    private fun startRecording(label: String) {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // The recording notification is how Wear OS shows the session is running.
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+        }
+        RecordingService.start(this, label)
     }
 
     override fun onResume() {
@@ -128,11 +161,14 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     }
 }
 
+private enum class Screen { Live, Recorder }
+
 private val Mint = Color(0xFF4ADE9F)
 private val Muted = Color(0xFF97A9A1)
 
 @Composable
 private fun LiveSensorScreen(
+    onOpenRecorder: () -> Unit,
     hasAccelerometer: Boolean,
     hasGyroscope: Boolean,
     accel: FloatArray?,
@@ -172,6 +208,13 @@ private fun LiveSensorScreen(
                         available = hasGyroscope,
                         values = gyro,
                         extra = null,
+                    )
+                }
+                item {
+                    Chip(
+                        onClick = onOpenRecorder,
+                        label = { Text("Record data") },
+                        colors = ChipDefaults.primaryChipColors(backgroundColor = Mint, contentColor = Color.Black),
                     )
                 }
                 item {
