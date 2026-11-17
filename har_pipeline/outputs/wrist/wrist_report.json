@@ -1,0 +1,152 @@
+{
+  "folds": [
+    {
+      "0.5": {
+        "fall_recall": 1.0,
+        "falls": 75,
+        "adl_false_alarm_rate": 0.456,
+        "adl_recordings": 125
+      },
+      "0.7": {
+        "fall_recall": 1.0,
+        "falls": 75,
+        "adl_false_alarm_rate": 0.248,
+        "adl_recordings": 125
+      },
+      "0.9": {
+        "fall_recall": 0.9733333333333334,
+        "falls": 75,
+        "adl_false_alarm_rate": 0.072,
+        "adl_recordings": 125
+      }
+    },
+    {
+      "0.5": {
+        "fall_recall": 1.0,
+        "falls": 75,
+        "adl_false_alarm_rate": 0.27419354838709675,
+        "adl_recordings": 124
+      },
+      "0.7": {
+        "fall_recall": 1.0,
+        "falls": 75,
+        "adl_false_alarm_rate": 0.14516129032258066,
+        "adl_recordings": 124
+      },
+      "0.9": {
+        "fall_recall": 0.9866666666666667,
+        "falls": 75,
+        "adl_false_alarm_rate": 0.04838709677419355,
+        "adl_recordings": 124
+      }
+    },
+    {
+      "0.5": {
+        "fall_recall": 1.0,
+        "falls": 75,
+        "adl_false_alarm_rate": 0.2719298245614035,
+        "adl_recordings": 114
+      },
+      "0.7": {
+        "fall_recall": 0.9866666666666667,
+        "falls": 75,
+        "adl_false_alarm_rate": 0.17543859649122806,
+        "adl_recordings": 114
+      },
+      "0.9": {
+        "fall_recall": 0.96,
+        "falls": 75,
+        "adl_false_alarm_rate": 0.07017543859649122,
+        "adl_recordings": 114
+      }
+    },
+    {
+      "0.5": {
+        "fall_recall": 1.0,
+        "falls": 75,
+        "adl_false_alarm_rate": 0.5350877192982456,
+        "adl_recordings": 114
+      },
+      "0.7": {
+        "fall_recall": 1.0,
+        "falls": 75,
+        "adl_false_alarm_rate": 0.34210526315789475,
+        "adl_recordings": 114
+      },
+      "0.9": {
+        "fall_recall": 1.0,
+        "falls": 75,
+        "adl_false_alarm_rate": 0.23684210526315788,
+        "adl_recordings": 114
+      }
+    },
+    {
+      "0.5": {
+        "fall_recall": 1.0,
+        "falls": 50,
+        "adl_false_alarm_rate": 0.47183098591549294,
+        "adl_recordings": 142
+      },
+      "0.7": {
+        "fall_recall": 1.0,
+        "falls": 50,
+        "adl_false_alarm_rate": 0.28169014084507044,
+        "adl_recordings": 142
+      },
+      "0.9": {
+        "fall_recall": 1.0,
+        "falls": 50,
+        "adl_false_alarm_rate": 0.08450704225352113,
+        "adl_recordings": 142
+      }
+    }
+  ],
+  "umafall_outside_test": {
+    "0.5": {
+      "fall_recall": 0.9519230769230769,
+      "falls": 208,
+      "adl_false_alarm_rate": 0.5,
+      "adl_recordings": 538
+    },
+    "0.7": {
+      "fall_recall": 0.9134615384615384,
+      "falls": 208,
+      "adl_false_alarm_rate": 0.2936802973977695,
+      "adl_recordings": 538
+    },
+    "0.9": {
+      "fall_recall": 0.8605769230769231,
+      "falls": 208,
+      "adl_false_alarm_rate": 0.13568773234200743,
+      "adl_recordings": 538
+    }
+  },
+  "own_held_out_normal_day": {
+    "0.5": {
+      "alarms": 100,
+      "hours": 5.25,
+      "per_hour": 19.065
+    },
+    "0.7": {
+      "alarms": 34,
+      "hours": 5.25,
+      "per_hour": 6.482
+    },
+    "0.9": {
+      "alarms": 7,
+      "hours": 5.25,
+      "per_hour": 1.335
+    }
+  },
+  "held_out_file": "session_20261115-150855_normal-day.csv",
+  "labels": [
+    "falling",
+    "not_falling"
+  ],
+  "preprocessing": {
+    "hz": 50,
+    "window": 100,
+    "acc_cap_ms2": 39.227,
+    "gyr_cap_rads": 34.907
+  }
+}

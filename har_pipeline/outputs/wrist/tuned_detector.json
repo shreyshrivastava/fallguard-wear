@@ -1,0 +1,139 @@
+{
+  "rule": "fewest tuning-day alarms with >= 90% tuning fall recall",
+  "tuning_day": "session_20261113-163952_normal-day.csv",
+  "held_out_day": "session_20261115-150855_normal-day.csv",
+  "current_app_default": {
+    "params": {
+      "spike": 26.0,
+      "freefall": 5.5,
+      "req_dip": true,
+      "conf": 0.45,
+      "min_tilt": 32.0,
+      "still_needed": 3,
+      "gyr": 1.8,
+      "still_std": 1.2,
+      "post_timeout": 4.5,
+      "lying_from_gravity": true
+    },
+    "tune_recall": 0.7142857142857143,
+    "tune_alarms_per_day": 18.8848881551242,
+    "final": {
+      "held_out_alarms_per_day": 30.5,
+      "held_out_auto_calls": 5,
+      "held_out_auto_calls_per_day": 15.3,
+      "held_out_alarms": 10,
+      "held_out_hours": 5.25,
+      "umafall_fall_recall": 0.832,
+      "umafall_activity_false_alarm": 0.076
+    }
+  },
+  "chosen": {
+    "params": {
+      "spike": 38.0,
+      "req_dip": false,
+      "freefall": 5.5,
+      "gyr": 4.0,
+      "conf": 0.97,
+      "still_std": 2.0,
+      "min_tilt": 0.0,
+      "still_needed": 2,
+      "post_timeout": 4.5,
+      "lying_from_gravity": false
+    },
+    "tune_recall": 0.9285714285714286,
+    "tune_alarms_per_day": 8.393283624499645,
+    "final": {
+      "held_out_alarms_per_day": 24.4,
+      "held_out_auto_calls": 2,
+      "held_out_auto_calls_per_day": 6.1,
+      "held_out_alarms": 8,
+      "held_out_hours": 5.25,
+      "umafall_fall_recall": 0.885,
+      "umafall_activity_false_alarm": 0.059
+    }
+  },
+  "runners_up": [
+    {
+      "params": {
+        "spike": 38.0,
+        "req_dip": false,
+        "freefall": 5.5,
+        "gyr": 4.0,
+        "conf": 0.9,
+        "still_std": 2.0,
+        "min_tilt": 0.0,
+        "still_needed": 3,
+        "post_timeout": 8.0,
+        "lying_from_gravity": false
+      },
+      "tune_recall": 0.92,
+      "tune_alarms_per_day": 8.393283624499645
+    },
+    {
+      "params": {
+        "spike": 38.0,
+        "req_dip": false,
+        "freefall": 5.5,
+        "gyr": 1.8,
+        "conf": 0.99,
+        "still_std": 2.0,
+        "min_tilt": 0.0,
+        "still_needed": 2,
+        "post_timeout": 8.0,
+        "lying_from_gravity": false
+      },
+      "tune_recall": 0.9285714285714286,
+      "tune_alarms_per_day": 9.4424440775621
+    },
+    {
+      "params": {
+        "spike": 38.0,
+        "req_dip": true,
+        "freefall": 7.0,
+        "gyr": 1.8,
+        "conf": 0.9,
+        "still_std": 2.0,
+        "min_tilt": 0.0,
+        "still_needed": 3,
+        "post_timeout": 4.5,
+        "lying_from_gravity": true
+      },
+      "tune_recall": 0.92,
+      "tune_alarms_per_day": 9.4424440775621
+    },
+    {
+      "params": {
+        "spike": 38.0,
+        "req_dip": true,
+        "freefall": 7.0,
+        "gyr": 4.0,
+        "conf": 0.9,
+        "still_std": 2.0,
+        "min_tilt": 0.0,
+        "still_needed": 3,
+        "post_timeout": 4.5,
+        "lying_from_gravity": false
+      },
+      "tune_recall": 0.92,
+      "tune_alarms_per_day": 9.4424440775621
+    },
+    {
+      "params": {
+        "spike": 38.0,
+        "req_dip": true,
+        "freefall": 7.0,
+        "gyr": 1.8,
+        "conf": 0.9,
+        "still_std": 2.0,
+        "min_tilt": 0.0,
+        "still_needed": 3,
+        "post_timeout": 4.5,
+        "lying_from_gravity": false
+      },
+      "tune_recall": 0.92,
+      "tune_alarms_per_day": 9.4424440775621
+    }
+  ],
+  "settings_tried": 601,
+  "settings_meeting_recall": 34
+}

@@ -54,3 +54,9 @@ Thumbs.db
 
 # Watch recordings pulled with tools/pull_recordings.sh (personal motion data)
 recordings/
+
+# Public datasets downloaded for training (licenses vary; WEDA-FALL has none, never commit)
+datasets/
+
+# Trained on WEDA-FALL (no data license): keep the weights local
+har_pipeline/outputs/wrist/*.pt
